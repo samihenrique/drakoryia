@@ -18,6 +18,26 @@
 
 > **Status:** Product definition is underway. This README describes the direction we are building toward in the open; it is not a claim that every capability is available today.
 
+## Development
+
+Requirements: Node.js 22+ and pnpm 11+.
+
+```bash
+pnpm install
+pnpm dev
+```
+
+The application uses Electron + electron-vite, a React renderer with TanStack Router, TanStack Query, Tailwind CSS v4, and shadcn/ui, and a local NestJS backend. The renderer has no Node.js access: it calls a narrow, typed IPC API exposed by the preload script; the Nest server listens only on an ephemeral `127.0.0.1` port.
+
+Data is managed by Prisma 7 with SQLite. In development, the database is created at `data/drakoryia.db` (which is ignored by Git); packaged builds use the operating system's application-data directory. Every startup creates the directory if needed and runs the committed Prisma migrations before the Nest backend starts.
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm build
+pnpm package
+```
+
 ## The idea
 
 AI coding agents made terminals more capable. They also made the developer the bottleneck: windows disappear behind one another, contexts blur, finished work goes unnoticed, and coordinating parallel work becomes work of its own.
