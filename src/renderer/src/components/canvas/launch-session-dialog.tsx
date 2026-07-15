@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { LoaderCircle, RefreshCw, TriangleAlert } from 'lucide-react'
+import { Check, LoaderCircle, RefreshCw, TriangleAlert } from 'lucide-react'
 import { CLI_LABELS } from '../../../../shared/terminals'
 import type { CliKind, CliModelOption, CliOptions } from '../../../../shared/terminals'
 import { Button } from '@/components/ui/button'
@@ -31,6 +31,7 @@ export interface LaunchConfig {
   readonly model: string
   readonly reasoningLevel: string
   readonly fast: boolean
+  readonly bypassApprovals: boolean
 }
 
 interface LaunchSessionDialogProps {
@@ -53,7 +54,8 @@ function defaultsFor(options: CliOptions): LaunchConfig {
   return {
     model,
     reasoningLevel: options.defaultReasoningLevel ?? selected?.defaultReasoningLevel ?? '',
-    fast: options.fastDefault === true && (selected ? selected.fastAvailable : options.supportsFast)
+    fast: options.fastDefault === true && (selected ? selected.fastAvailable : options.supportsFast),
+    bypassApprovals: true
   }
 }
 
@@ -65,7 +67,12 @@ export function LaunchSessionDialog({
   isLaunching,
   error
 }: LaunchSessionDialogProps): React.JSX.Element {
-  const [config, setConfig] = useState<LaunchConfig>({ model: '', reasoningLevel: '', fast: false })
+  const [config, setConfig] = useState<LaunchConfig>({
+    model: '',
+    reasoningLevel: '',
+    fast: false,
+    bypassApprovals: true
+  })
 
   const optionsQuery = useQuery({
     ...cliOptionsQueryOptions(cli ?? 'claude', workspaceId),
@@ -100,6 +107,7 @@ export function LaunchSessionDialog({
 
   function selectModel(model: CliModelOption): void {
     setConfig((current) => ({
+      ...current,
       model: model.id,
       reasoningLevel:
         model.defaultReasoningLevel ??
@@ -265,6 +273,43 @@ export function LaunchSessionDialog({
                 </span>
               </button>
             ) : null}
+
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={config.bypassApprovals}
+              onClick={() =>
+                setConfig((current) => ({ ...current, bypassApprovals: !current.bypassApprovals }))
+              }
+              className={cn(
+                'flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',
+                config.bypassApprovals
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border/70 hover:border-primary/40'
+              )}
+            >
+              <span
+                className={cn(
+                  'mt-0.5 grid size-4 shrink-0 place-items-center rounded border transition-colors',
+                  config.bypassApprovals
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-muted-foreground/40'
+                )}
+                aria-hidden="true"
+              >
+                {config.bypassApprovals ? <Check className="size-3" /> : null}
+              </span>
+              <span>
+                <span className="block text-sm font-medium">
+                  {cli === 'codex' ? 'YOLO mode' : 'Skip permission prompts'}
+                </span>
+                <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                  {cli === 'codex'
+                    ? 'Passes --yolo. The agent runs commands without asking and without a sandbox.'
+                    : 'Passes --dangerously-skip-permissions. The agent runs tools without asking.'}
+                </span>
+              </span>
+            </button>
           </div>
         ) : null}
 

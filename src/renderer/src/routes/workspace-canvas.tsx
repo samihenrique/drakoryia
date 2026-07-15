@@ -175,7 +175,8 @@ function WorkspaceCanvas({ workspaceId }: { readonly workspaceId: string }): Rea
         position: launchPosition.current,
         model: config.model || undefined,
         reasoningLevel: config.reasoningLevel || undefined,
-        fast: config.fast
+        fast: config.fast,
+        bypassApprovals: config.bypassApprovals
       }),
     onSuccess: (terminal) => {
       setNodes((current) => [...current, toNode(terminal)])

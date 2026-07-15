@@ -19,6 +19,7 @@ export interface TerminalLaunchOptions {
   readonly model?: string | undefined
   readonly reasoningLevel?: string | undefined
   readonly fast?: boolean | undefined
+  readonly bypassApprovals?: boolean | undefined
 }
 
 export interface CreateTerminalInput extends TerminalLaunchOptions {

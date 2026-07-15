@@ -244,6 +244,10 @@ export class TerminalManager {
         args.push('--effort', reasoningLevel)
       }
 
+      if (input.bypassApprovals !== false) {
+        args.push('--dangerously-skip-permissions')
+      }
+
       return args
     }
 
@@ -253,6 +257,10 @@ export class TerminalManager {
 
     if (input.fast === true) {
       args.push('--config', 'service_tier="fast"', '--config', 'features.fast_mode=true')
+    }
+
+    if (input.bypassApprovals !== false) {
+      args.push('--yolo')
     }
 
     return args
