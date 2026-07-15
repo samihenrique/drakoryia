@@ -29,7 +29,8 @@ import {
   type CanvasMenuState
 } from '@/components/canvas/canvas-context-menu'
 import { LaunchSessionDialog, type LaunchConfig } from '@/components/canvas/launch-session-dialog'
-import { terminalNodeTypes, type TerminalFlowNode } from '@/components/canvas/terminal-node'
+import { terminalNodeTypes } from '@/components/canvas/node-types'
+import type { TerminalFlowNode } from '@/components/canvas/terminal-node'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,

@@ -94,6 +94,10 @@ function TerminalNodeComponent({ data, selected }: NodeProps<TerminalFlowNode>):
       stopExit()
       terminal.dispose()
     }
+    // data.history is the scrollback captured before this node mounted. It is
+    // replayed once per session; live output arrives through onOutput, so
+    // re-running on every history change would duplicate the buffer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.id])
 
   const label = CLI_LABELS[data.cli]
@@ -160,5 +164,3 @@ function TerminalNodeComponent({ data, selected }: NodeProps<TerminalFlowNode>):
 }
 
 export const TerminalNode = memo(TerminalNodeComponent)
-
-export const terminalNodeTypes = { terminal: TerminalNode }
