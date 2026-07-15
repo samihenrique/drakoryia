@@ -1,7 +1,7 @@
 import { Folder, Settings2 } from 'lucide-react'
 import type { Workspace } from '../../../../shared/backend'
 import { Button } from '@/components/ui/button'
-import { formatAbsoluteTime, formatRelativeTime } from '@/lib/format'
+import { formatAbsoluteTime, formatRelativeTime, splitPathTail } from '@/lib/format'
 
 interface WorkspaceCardProps {
   readonly workspace: Workspace
@@ -14,6 +14,8 @@ export function WorkspaceCard({
   onOpen,
   onConfigure
 }: WorkspaceCardProps): React.JSX.Element {
+  const { head, tail } = splitPathTail(workspace.localPath)
+
   return (
     <article className="group relative flex flex-col gap-4 rounded-xl border border-border/70 bg-card/60 p-4 transition-colors focus-within:border-primary/40 hover:border-primary/40 hover:bg-card">
       <div className="flex items-start gap-3">
@@ -34,11 +36,9 @@ export function WorkspaceCard({
               {workspace.name}
             </button>
           </h3>
-          <p
-            className="mt-0.5 truncate font-mono text-xs text-muted-foreground"
-            title={workspace.localPath}
-          >
-            {workspace.localPath}
+          <p className="mt-0.5 flex font-mono text-xs text-muted-foreground" title={workspace.localPath}>
+            <span className="truncate">{head}</span>
+            <span className="max-w-full shrink-0 truncate">{tail}</span>
           </p>
         </div>
 

@@ -30,6 +30,20 @@ export function formatRelativeTime(isoDate: string): string {
   return ''
 }
 
+/**
+ * Splits a path so the last segment can be rendered as a non-shrinking tail.
+ * Truncating only the head keeps the folder itself readable: /home/sami/wo…/my-project
+ */
+export function splitPathTail(path: string): { readonly head: string; readonly tail: string } {
+  const separatorIndex = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))
+
+  if (separatorIndex < 0) {
+    return { head: '', tail: path }
+  }
+
+  return { head: path.slice(0, separatorIndex), tail: path.slice(separatorIndex) }
+}
+
 export function formatAbsoluteTime(isoDate: string): string {
   const timestamp = new Date(isoDate).getTime()
 

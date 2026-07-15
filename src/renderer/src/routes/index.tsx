@@ -5,6 +5,7 @@ import { Archive, FolderPlus, Plus, RefreshCw, Search, TriangleAlert } from 'luc
 import { BackendStatus } from '@/components/system/backend-status'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { AddWorkspaceTile } from '@/components/workspaces/add-workspace-tile'
 import { CreateWorkspaceDialog } from '@/components/workspaces/create-workspace-dialog'
 import { WorkspaceCard } from '@/components/workspaces/workspace-card'
 import {
@@ -242,6 +243,7 @@ function HomePage(): React.JSX.Element {
                   }}
                 />
               ))}
+              {term ? null : <AddWorkspaceTile onClick={() => setCreateOpen(true)} />}
             </div>
           ) : null}
         </div>
