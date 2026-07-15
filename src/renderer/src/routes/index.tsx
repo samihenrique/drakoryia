@@ -228,6 +228,12 @@ function HomePage(): React.JSX.Element {
                 <WorkspaceCard
                   key={workspace.id}
                   workspace={workspace}
+                  onOpen={(selectedWorkspace) => {
+                    void navigate({
+                      to: '/workspaces/$workspaceId/canvas',
+                      params: { workspaceId: selectedWorkspace.id }
+                    })
+                  }}
                   onConfigure={(selectedWorkspace) => {
                     void navigate({
                       to: '/workspaces/$workspaceId/settings',

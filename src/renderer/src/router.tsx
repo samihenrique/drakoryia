@@ -3,6 +3,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { archivedWorkspacesRoute } from './routes/archived-workspaces'
 import { indexRoute } from './routes/index'
 import { rootRoute } from './routes/root'
+import { workspaceCanvasRoute } from './routes/workspace-canvas'
 import { workspaceSettingsRoute } from './routes/workspace-settings'
 
 const queryClient = new QueryClient({
@@ -14,7 +15,12 @@ const queryClient = new QueryClient({
   }
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, archivedWorkspacesRoute, workspaceSettingsRoute])
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  archivedWorkspacesRoute,
+  workspaceCanvasRoute,
+  workspaceSettingsRoute
+])
 
 export const router = createRouter({
   routeTree,

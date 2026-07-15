@@ -58,6 +58,33 @@
   --ring: oklch(0.7 0.13 271);
 }
 
+/* Entering a workspace opens the canvas outward from the centre of the window. */
+@keyframes canvas-open {
+  from {
+    clip-path: inset(50% 50% 50% 50% round var(--radius));
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0 round 0);
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.canvas-open {
+  animation: canvas-open 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: center;
+  will-change: clip-path, transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-open {
+    animation: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

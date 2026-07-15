@@ -16,9 +16,9 @@ export interface TerminalGeometry {
 }
 
 export interface TerminalLaunchOptions {
-  readonly model?: string
-  readonly reasoningLevel?: string
-  readonly fast?: boolean
+  readonly model?: string | undefined
+  readonly reasoningLevel?: string | undefined
+  readonly fast?: boolean | undefined
 }
 
 export interface CreateTerminalInput extends TerminalLaunchOptions {
