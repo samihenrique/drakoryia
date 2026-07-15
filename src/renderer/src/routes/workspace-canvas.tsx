@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { createRoute, useNavigate, useParams } from '@tanstack/react-router'
 import {
   Background,
@@ -66,7 +66,6 @@ function nodeSize(node: TerminalFlowNode): { width: number; height: number } {
 }
 
 function WorkspaceCanvas({ workspaceId }: { readonly workspaceId: string }): React.JSX.Element {
-  const queryClient = useQueryClient()
   const { screenToFlowPosition } = useReactFlow()
   const [nodes, setNodes, onNodesChange] = useNodesState<TerminalFlowNode>([])
   const [menu, setMenu] = useState<CanvasMenuState | null>(null)
@@ -181,7 +180,6 @@ function WorkspaceCanvas({ workspaceId }: { readonly workspaceId: string }): Rea
     onSuccess: (terminal) => {
       setNodes((current) => [...current, toNode(terminal)])
       setLaunchCli(null)
-      void queryClient.invalidateQueries({ queryKey: terminalQueryOptions(workspaceId).queryKey })
     }
   })
 
