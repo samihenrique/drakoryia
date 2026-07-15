@@ -64,7 +64,7 @@ export function CanvasContextMenu({
       tabIndex={-1}
       aria-label="Canvas actions"
       style={{ left: menu.x, top: menu.y, width: MENU_WIDTH }}
-      className="absolute z-20 rounded-xl border border-border/70 bg-card/95 p-1 shadow-2xl outline-none backdrop-blur"
+      className="canvas-context-menu absolute z-20 rounded-xl border border-border/70 bg-card/95 p-1 shadow-2xl outline-none backdrop-blur"
       onContextMenu={(event) => event.preventDefault()}
     >
       <p className="px-2 py-1.5 text-[0.68rem] font-medium tracking-wide text-muted-foreground uppercase">

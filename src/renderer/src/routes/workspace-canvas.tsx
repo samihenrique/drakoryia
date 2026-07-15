@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { MouseEvent as ReactMouseEvent } from 'react'
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createRoute, useNavigate, useParams } from '@tanstack/react-router'
 import {
@@ -184,25 +184,42 @@ function WorkspaceCanvas({ workspaceId }: { readonly workspaceId: string }): Rea
     }
   })
 
-  function openMenu(event: ReactMouseEvent<HTMLDivElement>): void {
-    const target = event.target as HTMLElement
+  function isCanvasSurface(target: EventTarget | null): boolean {
+    if (!(target instanceof Element)) {
+      return false
+    }
 
-    if (target.closest('.react-flow__node, .react-flow__controls, .canvas-toolbar')) {
+    return !target.closest('.react-flow__node, .react-flow__controls, .canvas-toolbar, .canvas-context-menu')
+  }
+
+  function showMenu(clientX: number, clientY: number): void {
+    const bounds = wrapper.current?.getBoundingClientRect()
+    const relativeX = clientX - (bounds?.left ?? 0)
+    const relativeY = clientY - (bounds?.top ?? 0)
+
+    setMenu({
+      x: Math.max(10, Math.min(relativeX, (bounds?.width ?? relativeX) - MENU_WIDTH)),
+      y: Math.max(10, Math.min(relativeY, (bounds?.height ?? relativeY) - MENU_HEIGHT)),
+      flowPosition: screenToFlowPosition({ x: clientX, y: clientY })
+    })
+  }
+
+  function openMenu(event: ReactMouseEvent<Element> | MouseEvent): void {
+    event.preventDefault()
+    event.stopPropagation()
+
+    showMenu(event.clientX, event.clientY)
+  }
+
+  function openMenuOnPointerDown(event: ReactPointerEvent<HTMLDivElement>): void {
+    if (event.button !== 2 || !isCanvasSurface(event.target)) {
       return
     }
 
     event.preventDefault()
     event.stopPropagation()
 
-    const bounds = wrapper.current?.getBoundingClientRect()
-    const relativeX = event.clientX - (bounds?.left ?? 0)
-    const relativeY = event.clientY - (bounds?.top ?? 0)
-
-    setMenu({
-      x: Math.max(10, Math.min(relativeX, (bounds?.width ?? relativeX) - MENU_WIDTH)),
-      y: Math.max(10, Math.min(relativeY, (bounds?.height ?? relativeY) - MENU_HEIGHT)),
-      flowPosition: screenToFlowPosition({ x: event.clientX, y: event.clientY })
-    })
+    showMenu(event.clientX, event.clientY)
   }
 
   const nodeTypes = useMemo(() => terminalNodeTypes, [])
@@ -215,7 +232,7 @@ function WorkspaceCanvas({ workspaceId }: { readonly workspaceId: string }): Rea
       <div
         ref={wrapper}
         className="relative min-h-0 overflow-hidden"
-        onContextMenuCapture={openMenu}
+        onPointerDownCapture={openMenuOnPointerDown}
       >
         <ReactFlow
           nodes={nodes}
@@ -230,9 +247,14 @@ function WorkspaceCanvas({ workspaceId }: { readonly workspaceId: string }): Rea
           elementsSelectable
           selectionOnDrag={interactionMode === 'selection'}
           selectionMode={SelectionMode.Partial}
-          panOnDrag={interactionMode === 'selection' ? [2] : [1, 2]}
+          panOnDrag={interactionMode === 'selection' ? false : [1]}
           onSelectionChange={({ nodes: selected }) => setSelectedCount(selected.length)}
-          onPaneClick={() => setMenu(null)}
+          onPaneClick={(event) => {
+            if (event.button === 0) {
+              setMenu(null)
+            }
+          }}
+          onPaneContextMenu={openMenu}
           onNodeContextMenu={(event) => {
             event.preventDefault()
             setMenu(null)
