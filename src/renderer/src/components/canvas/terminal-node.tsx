@@ -155,10 +155,13 @@ function TerminalNodeComponent({ data, selected }: NodeProps<TerminalFlowNode>):
       </header>
 
       <div
-        ref={viewport}
         className="nodrag min-h-0 flex-1 bg-[#12121a] px-2 py-1.5"
         onMouseDown={(event) => event.stopPropagation()}
-      />
+      >
+        {/* FitAddon derives cols/rows from this element's computed width, which
+            under border-box would swallow any padding set here. Keep it bare. */}
+        <div ref={viewport} className="size-full" />
+      </div>
     </article>
   )
 }
