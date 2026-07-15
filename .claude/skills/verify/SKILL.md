@@ -20,25 +20,25 @@ the root `postinstall` (`electron-builder install-app-deps`), which rebuilds tho
 binaries against Electron's ABI — pnpm's own "Ignored build scripts" warning for
 node-pty is therefore harmless.
 
-## Launch — the file:// trap
+## Launch
 
-**`electron out/main/index.js` on its own renders "Not Found" on every route.**
-`loadFile` gives the renderer `location.pathname = /…/out/renderer/index.html`,
-which matches no route in the TanStack router (it uses browser history, not hash).
-This is not a regression — it affects the packaged build of every route.
-
-`pnpm dev` avoids it because the main process prefers `ELECTRON_RENDERER_URL`.
-To drive the *built* bundle, serve it over http and point the app at it:
+Drive the built bundle straight over `file://` — no static server needed:
 
 ```js
-// tiny static server on :5199 with an SPA fallback to index.html, then:
 const app = await electron.launch({
   executablePath: require('electron'),      // resolves to node_modules/.pnpm/electron@*/…/electron
   args: ['out/main/index.js'],
   cwd: '/home/samihenrique/work/devfy/drakoryia',
-  env: { ...process.env, DISPLAY: ':0', ELECTRON_RENDERER_URL: 'http://localhost:5199' }
+  env: { ...process.env, DISPLAY: ':0' }
 })
 ```
+
+The router uses **hash history** (`createHashHistory` in `src/renderer/src/router.tsx`)
+precisely because `loadFile` gives the renderer
+`location.pathname = /…/out/renderer/index.html`, which matches no route. Routes
+live in the hash (`index.html#/workspaces/<id>/canvas`) and behave identically
+under `file://` and the dev server. If you ever switch back to browser history,
+every route renders "Not Found" in the packaged app.
 
 Playwright is not a project dep — install it in a scratch dir (`npm i playwright`)
 and always pass `executablePath`, or it errors with "Electron executablePath not

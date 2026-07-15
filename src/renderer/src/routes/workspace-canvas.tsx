@@ -51,8 +51,14 @@ import { cn } from '@/lib/utils'
 import { rootRoute } from './root'
 
 const GEOMETRY_SAVE_DELAY_MS = 500
+const CANVAS_MENU_MARGIN = 10
 
 type InteractionMode = 'cursor' | 'selection'
+
+/** Keeps the lower bound authoritative when the canvas is too small for both. */
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.max(minimum, Math.min(value, maximum))
+}
 
 function nodeSize(node: TerminalFlowNode): { width: number; height: number } {
   const style = node.style as { width?: number | string; height?: number | string } | undefined
@@ -195,10 +201,12 @@ function WorkspaceCanvas({ workspaceId }: { readonly workspaceId: string }): Rea
     const bounds = wrapper.current?.getBoundingClientRect()
     const relativeX = clientX - (bounds?.left ?? 0)
     const relativeY = clientY - (bounds?.top ?? 0)
+    const maxX = (bounds?.width ?? relativeX) - MENU_WIDTH - CANVAS_MENU_MARGIN
+    const maxY = (bounds?.height ?? relativeY) - MENU_HEIGHT - CANVAS_MENU_MARGIN
 
     setMenu({
-      x: Math.max(10, Math.min(relativeX, (bounds?.width ?? relativeX) - MENU_WIDTH)),
-      y: Math.max(10, Math.min(relativeY, (bounds?.height ?? relativeY) - MENU_HEIGHT)),
+      x: clamp(relativeX, CANVAS_MENU_MARGIN, maxX),
+      y: clamp(relativeY, CANVAS_MENU_MARGIN, maxY),
       flowPosition: screenToFlowPosition({ x: clientX, y: clientY })
     })
   }

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { RouterProvider, createHashHistory, createRouter } from '@tanstack/react-router'
 import { archivedWorkspacesRoute } from './routes/archived-workspaces'
 import { indexRoute } from './routes/index'
 import { rootRoute } from './routes/root'
@@ -22,8 +22,14 @@ const routeTree = rootRoute.addChildren([
   workspaceSettingsRoute
 ])
 
+// The packaged app is served from file://, where the pathname is the absolute path
+// of index.html and matches no route. The route therefore lives in the hash, which
+// is identical under file:// and the dev server.
+const history = createHashHistory()
+
 export const router = createRouter({
   routeTree,
+  history,
   context: { queryClient },
   defaultPreloadStaleTime: 0,
   Wrap: ({ children }) => (
