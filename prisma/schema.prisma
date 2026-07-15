@@ -12,3 +12,12 @@ model ApplicationSetting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+model Workspace {
+  id         String    @id @default(cuid())
+  name       String
+  localPath  String    @unique
+  archivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}

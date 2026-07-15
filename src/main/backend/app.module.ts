@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common'
 import type { DynamicModule } from '@nestjs/common'
 import { DatabaseModule } from '../database/database.module'
+import { WorkspaceController } from '../workspaces/workspace.controller'
+import { WorkspaceService } from '../workspaces/workspace.service'
 import { HealthController } from './health.controller'
 import { HealthService } from './health.service'
 
 @Module({
-  controllers: [HealthController],
-  providers: [HealthService]
+  controllers: [HealthController, WorkspaceController],
+  providers: [HealthService, WorkspaceService]
 })
 export class AppModule {}
 
