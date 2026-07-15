@@ -4,4 +4,5 @@ allowBuilds:
   better-sqlite3: true
   electron-winstaller: true
   esbuild: true
+  node-pty: true
   prisma: true

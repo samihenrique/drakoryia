@@ -4,11 +4,28 @@ import { join } from 'node:path'
 import { prepareDatabase } from './database/setup'
 import { startBackend } from './backend/client'
 import type { BackendClient } from './backend/client'
+import { TerminalManager } from './terminals/terminal-manager'
 import type { CreateWorkspaceInput, DeleteWorkspaceInput } from '../shared/backend'
+import type {
+  CliKind,
+  CreateTerminalInput,
+  TerminalExitEvent,
+  TerminalGeometry,
+  TerminalOutputEvent
+} from '../shared/terminals'
 import icon from '../../design/app-icon.png?asset'
 
 let mainWindow: BrowserWindow | undefined
 let backend: BackendClient | undefined
+let terminals: TerminalManager | undefined
+
+function requireTerminals(): TerminalManager {
+  if (!terminals) {
+    throw new Error('The terminal manager is not running.')
+  }
+
+  return terminals
+}
 
 function requireBackend(): BackendClient {
   if (!backend) {
@@ -27,6 +44,9 @@ if (process.platform === 'linux' && process.env.XDG_SESSION_TYPE === 'wayland') 
 Menu.setApplicationMenu(null)
 
 function createWindow(): void {
+  const rendererUrl = process.env.ELECTRON_RENDERER_URL
+  const rendererOrigin = rendererUrl ? new URL(rendererUrl).origin : null
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 760,
@@ -48,11 +68,13 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
-  mainWindow.webContents.on('will-navigate', (event) => {
+  mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+    if (rendererOrigin && new URL(navigationUrl).origin === rendererOrigin) {
+      return
+    }
+
     event.preventDefault()
   })
-
-  const rendererUrl = process.env.ELECTRON_RENDERER_URL
 
   if (rendererUrl) {
     void mainWindow.loadURL(rendererUrl)
@@ -65,8 +87,18 @@ function createWindow(): void {
 async function bootstrap(): Promise<void> {
   const databaseUrl = await prepareDatabase()
   backend = await startBackend(databaseUrl)
+  terminals = new TerminalManager((id) => requireBackend().getWorkspace(id))
+
+  terminals.events.on('output', (event: TerminalOutputEvent) => {
+    mainWindow?.webContents.send('terminal:output', event)
+  })
+
+  terminals.events.on('exit', (event: TerminalExitEvent) => {
+    mainWindow?.webContents.send('terminal:exit', event)
+  })
 
   ipcMain.handle('backend:health', () => requireBackend().getHealth())
+  ipcMain.handle('workspace:get', (_event, id: string) => requireBackend().getWorkspace(id))
   ipcMain.handle('workspace:list', () => requireBackend().listWorkspaces())
   ipcMain.handle('workspace:list-archived', () => requireBackend().listArchivedWorkspaces())
   ipcMain.handle('workspace:create', (_event, input: CreateWorkspaceInput) =>
@@ -84,6 +116,34 @@ async function bootstrap(): Promise<void> {
     })
 
     return result.canceled ? null : (result.filePaths[0] ?? null)
+  })
+
+  ipcMain.handle('terminal:list', (_event, workspaceId: string) =>
+    requireTerminals().list(workspaceId)
+  )
+  ipcMain.handle('terminal:options', (_event, cli: CliKind, workspaceId: string) =>
+    requireTerminals().options(cli, workspaceId)
+  )
+  ipcMain.handle('terminal:create', (_event, input: CreateTerminalInput) =>
+    requireTerminals().create(input)
+  )
+  ipcMain.handle('terminal:close', (_event, id: string) => {
+    requireTerminals().close(id)
+  })
+  ipcMain.handle('terminal:remove', (_event, id: string) => {
+    requireTerminals().remove(id)
+  })
+
+  // Keystrokes, resizes and layout saves are high frequency and fire-and-forget,
+  // so they skip the invoke round trip.
+  ipcMain.on('terminal:input', (_event, id: string, data: string) => {
+    terminals?.write(id, data)
+  })
+  ipcMain.on('terminal:resize', (_event, id: string, cols: number, rows: number) => {
+    terminals?.resize(id, cols, rows)
+  })
+  ipcMain.on('terminal:save-geometry', (_event, id: string, geometry: TerminalGeometry) => {
+    terminals?.saveGeometry(id, geometry)
   })
 
   createWindow()
@@ -110,7 +170,10 @@ app.on('window-all-closed', () => {
 })
 
 app.on('will-quit', () => {
+  terminals?.disposeAll()
+
   ipcMain.removeHandler('backend:health')
+  ipcMain.removeHandler('workspace:get')
   ipcMain.removeHandler('workspace:list')
   ipcMain.removeHandler('workspace:list-archived')
   ipcMain.removeHandler('workspace:create')
@@ -118,5 +181,13 @@ app.on('will-quit', () => {
   ipcMain.removeHandler('workspace:unarchive')
   ipcMain.removeHandler('workspace:delete')
   ipcMain.removeHandler('workspace:select-directory')
+  ipcMain.removeHandler('terminal:list')
+  ipcMain.removeHandler('terminal:options')
+  ipcMain.removeHandler('terminal:create')
+  ipcMain.removeHandler('terminal:close')
+  ipcMain.removeHandler('terminal:remove')
+  ipcMain.removeAllListeners('terminal:input')
+  ipcMain.removeAllListeners('terminal:resize')
+  ipcMain.removeAllListeners('terminal:save-geometry')
   void backend?.close()
 })
