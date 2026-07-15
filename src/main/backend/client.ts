@@ -10,6 +10,7 @@ import { createAppModule } from './app.module'
 
 export interface BackendClient {
   getHealth(): Promise<BackendHealth>
+  getWorkspace(id: string): Promise<Workspace>
   listWorkspaces(): Promise<Workspace[]>
   listArchivedWorkspaces(): Promise<Workspace[]>
   createWorkspace(input: CreateWorkspaceInput): Promise<Workspace>
@@ -94,6 +95,9 @@ export async function startBackend(databaseUrl: string): Promise<BackendClient> 
       }
 
       return payload
+    },
+    getWorkspace(id: string): Promise<Workspace> {
+      return request<Workspace>(`/workspaces/${id}`)
     },
     listWorkspaces(): Promise<Workspace[]> {
       return request<Workspace[]>('/workspaces')

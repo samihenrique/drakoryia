@@ -3,9 +3,11 @@ import { existsSync, statSync } from 'node:fs'
 import { isAbsolute, resolve } from 'node:path'
 import type { Workspace as PrismaWorkspace } from '../../generated/prisma/client'
 import type { CreateWorkspaceInput, Workspace } from '../../shared/backend'
+import {
+  MAX_WORKSPACE_NAME_LENGTH,
+  MAX_WORKSPACE_PATH_LENGTH
+} from '../../shared/workspace-limits'
 import { PrismaService } from '../database/prisma.service'
-
-const MAX_NAME_LENGTH = 80
 
 @Injectable()
 export class WorkspaceService {
@@ -49,6 +51,10 @@ export class WorkspaceService {
 
       throw error
     }
+  }
+
+  async get(id: string): Promise<Workspace> {
+    return this.toWorkspace(await this.findById(id))
   }
 
   async listArchived(): Promise<Workspace[]> {
@@ -129,14 +135,22 @@ export class WorkspaceService {
       throw new BadRequestException('A workspace name is required.')
     }
 
-    if (name.length > MAX_NAME_LENGTH) {
-      throw new BadRequestException(`Workspace names can have at most ${MAX_NAME_LENGTH} characters.`)
+    if (name.length > MAX_WORKSPACE_NAME_LENGTH) {
+      throw new BadRequestException(
+        `Workspace names can have at most ${MAX_WORKSPACE_NAME_LENGTH} characters.`
+      )
     }
 
     return name
   }
 
   private validateDirectory(value: string): string {
+    if (value.length > MAX_WORKSPACE_PATH_LENGTH) {
+      throw new BadRequestException(
+        `Workspace paths can have at most ${MAX_WORKSPACE_PATH_LENGTH} characters.`
+      )
+    }
+
     if (!value || !isAbsolute(value)) {
       throw new BadRequestException('Choose an absolute local directory.')
     }

@@ -11,6 +11,10 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import {
+  MAX_WORKSPACE_NAME_LENGTH,
+  MAX_WORKSPACE_PATH_LENGTH
+} from '../../../../shared/workspace-limits'
 
 interface CreateWorkspaceDialogProps {
   readonly open: boolean
@@ -23,6 +27,31 @@ interface CreateWorkspaceDialogProps {
 function suggestedName(path: string): string {
   const segments = path.split(/[\\/]/).filter(Boolean)
   return segments.at(-1) ?? ''
+}
+
+function counterTone(value: number, limit: number): string {
+  const ratio = value / limit
+
+  if (ratio >= 0.9) {
+    return 'text-red-400'
+  }
+
+  if (ratio >= 0.7) {
+    return 'text-amber-300'
+  }
+
+  return 'text-emerald-400'
+}
+
+function CharacterCounter({ value, limit }: { readonly value: string; readonly limit: number }): React.JSX.Element {
+  const atLimit = value.length >= limit
+
+  return (
+    <span className={`text-xs tabular-nums ${counterTone(value.length, limit)}`} aria-live="polite">
+      {value.length.toLocaleString()} / {limit.toLocaleString()}
+      {atLimit ? ' — limit reached' : null}
+    </span>
+  )
 }
 
 export function CreateWorkspaceDialog({
@@ -78,22 +107,36 @@ export function CreateWorkspaceDialog({
 
         <form onSubmit={(event) => void submit(event)}>
           <div className="grid gap-5">
-            <label className="grid gap-2 text-sm font-medium">
-              Workspace name
+            <label className="grid gap-2 text-sm font-medium" htmlFor="workspace-name">
+              <span className="flex items-center justify-between gap-3">
+                <span>Workspace name</span>
+                <CharacterCounter value={name} limit={MAX_WORKSPACE_NAME_LENGTH} />
+              </span>
               <Input
+                id="workspace-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="My project"
                 autoFocus
-                maxLength={80}
+                maxLength={MAX_WORKSPACE_NAME_LENGTH}
                 required
               />
             </label>
 
             <div className="grid gap-2">
-              <span className="text-sm font-medium">Local directory</span>
+              <span className="flex items-center justify-between gap-3 text-sm font-medium">
+                <span>Local directory</span>
+                <CharacterCounter value={localPath} limit={MAX_WORKSPACE_PATH_LENGTH} />
+              </span>
               <div className="flex gap-2">
-                <Input value={localPath} placeholder="Choose a folder" readOnly required />
+                <Input
+                  id="workspace-path"
+                  value={localPath}
+                  placeholder="Choose a folder"
+                  readOnly
+                  maxLength={MAX_WORKSPACE_PATH_LENGTH}
+                  required
+                />
                 <Button type="button" variant="outline" onClick={() => void selectDirectory()}>
                   <FolderOpen aria-hidden="true" />
                   Choose
@@ -108,7 +151,16 @@ export function CreateWorkspaceDialog({
             <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)} disabled={isCreating}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isCreating || !name.trim() || !localPath}>
+            <Button
+              type="submit"
+              disabled={
+                isCreating ||
+                !name.trim() ||
+                !localPath ||
+                name.length > MAX_WORKSPACE_NAME_LENGTH ||
+                localPath.length > MAX_WORKSPACE_PATH_LENGTH
+              }
+            >
               {isCreating ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : null}
               Add workspace
             </Button>

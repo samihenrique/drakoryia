@@ -6,3 +6,5 @@ src/generated/prisma/
 .eslintcache
 *.log
 .DS_Store
+.playwright-mcp/
+/home-1440.png

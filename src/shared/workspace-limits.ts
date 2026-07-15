@@ -1,0 +1,2 @@
+export const MAX_WORKSPACE_NAME_LENGTH = 80
+export const MAX_WORKSPACE_PATH_LENGTH = 500

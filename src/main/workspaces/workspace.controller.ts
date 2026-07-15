@@ -16,6 +16,11 @@ export class WorkspaceController {
     return this.workspaceService.listArchived()
   }
 
+  @Get(':id')
+  get(@Param('id') id: string): Promise<Workspace> {
+    return this.workspaceService.get(id)
+  }
+
   @Post()
   create(@Body() input: CreateWorkspaceInput): Promise<Workspace> {
     return this.workspaceService.create(input)
