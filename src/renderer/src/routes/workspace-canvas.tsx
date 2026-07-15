@@ -258,6 +258,7 @@ function WorkspaceCanvas({ workspaceId }: { readonly workspaceId: string }): Rea
             event.preventDefault()
             setMenu(null)
           }}
+          colorMode="dark"
           proOptions={{ hideAttribution: true }}
         >
           <Background variant={BackgroundVariant.Dots} gap={24} size={1} className="opacity-60" />
