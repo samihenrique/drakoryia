@@ -27,6 +27,16 @@ function requireTerminals(): TerminalManager {
   return terminals
 }
 
+// Terminal output keeps streaming after the window is gone, and a destroyed
+// window throws on `.webContents` instead of reading as undefined.
+function sendToRenderer(channel: string, payload: unknown): void {
+  if (!mainWindow || mainWindow.isDestroyed() || mainWindow.webContents.isDestroyed()) {
+    return
+  }
+
+  mainWindow.webContents.send(channel, payload)
+}
+
 function requireBackend(): BackendClient {
   if (!backend) {
     throw new Error('The local backend is not running.')
@@ -67,6 +77,10 @@ function createWindow(): void {
     mainWindow?.show()
   })
 
+  mainWindow.on('closed', () => {
+    mainWindow = undefined
+  })
+
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
     if (rendererOrigin && new URL(navigationUrl).origin === rendererOrigin) {
@@ -90,11 +104,11 @@ async function bootstrap(): Promise<void> {
   terminals = new TerminalManager((id) => requireBackend().getWorkspace(id))
 
   terminals.events.on('output', (event: TerminalOutputEvent) => {
-    mainWindow?.webContents.send('terminal:output', event)
+    sendToRenderer('terminal:output', event)
   })
 
   terminals.events.on('exit', (event: TerminalExitEvent) => {
-    mainWindow?.webContents.send('terminal:exit', event)
+    sendToRenderer('terminal:exit', event)
   })
 
   ipcMain.handle('backend:health', () => requireBackend().getHealth())
