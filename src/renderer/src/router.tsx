@@ -1,7 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { archivedWorkspacesRoute } from './routes/archived-workspaces'
 import { indexRoute } from './routes/index'
 import { rootRoute } from './routes/root'
+import { workspaceSettingsRoute } from './routes/workspace-settings'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -12,7 +14,7 @@ const queryClient = new QueryClient({
   }
 })
 
-const routeTree = rootRoute.addChildren([indexRoute])
+const routeTree = rootRoute.addChildren([indexRoute, archivedWorkspacesRoute, workspaceSettingsRoute])
 
 export const router = createRouter({
   routeTree,
