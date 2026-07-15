@@ -76,22 +76,20 @@ function ArchivedWorkspacesRoute(): React.JSX.Element {
 
   return (
     <main className="min-h-screen overflow-x-hidden">
-      <BackHeader onBack={goBack} />
+      <BackHeader onBack={goBack}>
+        <h1 className="truncate text-sm font-medium">Archived workspaces</h1>
+        {workspaces.length > 0 ? (
+          <p className="truncate text-[0.68rem] text-muted-foreground tabular-nums">
+            {workspaces.length} archived
+          </p>
+        ) : null}
+      </BackHeader>
 
       <div className="w-full px-6 py-8 sm:px-8">
-        <div className="mb-7 border-b border-border pb-5">
-          <p className="text-sm text-muted-foreground">
-            Workspaces <span className="mx-1 text-border">/</span>{' '}
-            <span className="font-medium text-foreground">Archived</span>
-          </p>
-          <h1 className="mt-3 text-2xl font-semibold tracking-tight">Archived workspaces</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            These workspaces are hidden from the active list. Restoring one brings it back — the folder on your
-            computer never moves.
-          </p>
-        </div>
-
-        <section className="motion-safe:animate-in motion-safe:slide-in-from-right-4 motion-safe:duration-200">
+        <section
+          className="motion-safe:animate-in motion-safe:slide-in-from-right-4 motion-safe:duration-200"
+          aria-label="Archived workspaces"
+        >
           {archivedQuery.isPending ? (
             <div className="grid min-h-52 place-items-center text-muted-foreground">
               <LoaderCircle className="size-5 animate-spin" aria-hidden="true" />
